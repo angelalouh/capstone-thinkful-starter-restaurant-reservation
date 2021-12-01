@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
 import { today, previous, next } from "../utils/date-time";
+import DashboardButtons from "./DashboardButtons";
+import formatReservationTime from "../utils/format-reservation-time";
 
 /**
  * Defines the dashboard page.
@@ -26,82 +28,63 @@ function Dashboard({ date }) {
   }
 
   console.log("reservations:", reservations);
-  function previousButtonClickHandler() {
-    setReservationsDate((currentDate) => previous(currentDate));
-  }
 
-  function todayButtonClickHandler() {
-    setReservationsDate(today());
-  }
+  const reservationsOnCurrentDate = reservations.filter(
+    (reservation) => reservation.reservation_date === reservationsDate
+  );
 
-  function nextButtonClickHandler() {
-    setReservationsDate((currentDate) => next(currentDate));
-  }
+  console.log("res time formatted with fxn:", formatReservationTime(reservations));
+
+  console.log("res on current date:", reservationsOnCurrentDate);
+
+  const sortedReservations = reservations.sort((reservationA, reservationB) => {
+    const resATimeArray = reservationA.reservation_time.split("");
+    const resATimeWithoutColon = resATimeArray.filter(char => char !== ":");
+    const resATime = resATimeWithoutColon.join("");
+
+    const resBTimeArray = reservationB.reservation_time.split("");
+    const resBTimeWithoutColon = resBTimeArray.filter(char => char !== ":");
+    const resBTime = resBTimeWithoutColon.join("");
+    
+    return resATime - resBTime;
+  });
+
+  console.log("sorted res:", sortedReservations);
+
+  const reservationsTableRows = reservations.map((reservation) => (
+    <tr key={reservation.reservation_id}>
+      <th scope="row">{reservation.reservation_time}</th>
+      <td>{reservation.reservation_id}</td>
+      <td>{reservation.first_name}</td>
+      <td>{reservation.last_name}</td>
+      <td>{reservation.mobile_number}</td>
+      <td>{reservation.people}</td>
+    </tr>
+  ));
+
+  // {JSON.stringify(reservations)}
 
   return (
     <main>
       <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for date: {reservationsDate}</h4>
+      <div className="d-md-flex mb-2">
+        <h4 className="mb-0">Reservations for Date: {reservationsDate}</h4>
       </div>
       <ErrorAlert error={reservationsError} />
-      <div>{JSON.stringify(reservations)}</div>
-      <div class="btn-group" role="group">
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
-          onClick={previousButtonClickHandler}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-calendar-minus mr-2 mb-1"
-            viewBox="0 0 16 16"
-          >
-            <path d="M5.5 9.5A.5.5 0 0 1 6 9h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z" />
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-          </svg>
-          Previous
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary active btn-sm"
-          onClick={todayButtonClickHandler}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-calendar-event mr-2 mb-1"
-            viewBox="0 0 16 16"
-          >
-            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-          </svg>
-          Today
-        </button>
-        <button
-          type="button"
-          class="btn btn-secondary btn-sm"
-          onClick={nextButtonClickHandler}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-calendar-plus mr-2 mb-1"
-            viewBox="0 0 16 16"
-          >
-            <path d="M8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7z" />
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-          </svg>
-          Next
-        </button>
-      </div>
+      <DashboardButtons setReservationsDate={setReservationsDate} />
+      <table class="table table-info table-hover">
+        <thead class="table-primary">
+          <tr>
+            <th scope="col">Reservation Time</th>
+            <th scope="col">Reservation ID</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">Mobile Number</th>
+            <th scope="col">Party Size</th>
+          </tr>
+        </thead>
+        <tbody>{reservationsTableRows}</tbody>
+      </table>
     </main>
   );
 }
