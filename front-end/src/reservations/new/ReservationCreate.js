@@ -26,7 +26,7 @@ function ReservationCreate() {
     event.preventDefault();
     createReservation(reservation)
       .then(() => {
-        history.push("/dashbord");
+        history.push("/dashboard");
       })
       .catch(setError);
   }
@@ -37,8 +37,6 @@ function ReservationCreate() {
       [name]: value,
     }));
   }
-
-  console.log(reservation);
 
   return (
     <main>
@@ -121,6 +119,7 @@ function ReservationCreate() {
             onChange={changeHandler}
             value={reservation.people}
           >
+            <option value="">#</option>
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
