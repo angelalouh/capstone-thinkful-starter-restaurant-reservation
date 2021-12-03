@@ -96,8 +96,6 @@ function ReservationCreate() {
             name="reservation_time"
             type="time"
             pattern="[0-9]{2}:[0-9]{2}"
-            min="10:30"
-            max="21:30"
             require={true}
             onChange={changeHandler}
             value={reservation.reservation_time}
