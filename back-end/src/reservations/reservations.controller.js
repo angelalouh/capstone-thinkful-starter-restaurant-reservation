@@ -4,12 +4,20 @@ const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
 /**
  * Validation functions for the create handler
  */
-
 function hasData(req, res, next) {
   if (req.body.data) {
     return next();
   }
-  next({ status: 400, message: "req body must have data property." });
+  next({ status: 400, message: "Request body must have data property." });
+}
+
+function initializingErrorsObject(req, res, next) {
+  let errors = {
+    status: 400,
+    message: [],
+  };
+  res.locals.errors = errors;
+  return next();
 }
 
 function hasFirstName(req, res, next) {
@@ -17,7 +25,9 @@ function hasFirstName(req, res, next) {
   if (firstName) {
     return next();
   }
-  next({ status: 400, message: "Reservation must include a first_name." });
+  const { errors } = res.locals;
+  errors.message.push("Reservation must include a first_name.");
+  return next();
 }
 
 function hasLastName(req, res, next) {
@@ -25,20 +35,26 @@ function hasLastName(req, res, next) {
   if (lastName) {
     return next();
   }
-  next({ status: 400, message: "Reservation must include a last_name." });
+  const { errors } = res.locals;
+  errors.message.push("Reservation must include a last_name.");
+  return next();
 }
 
 function hasMobileNumberInProperFormat(req, res, next) {
   const mobileNumber = req.body.data.mobile_number;
-  const regex = new RegExp(/[0-9]{3}-[0-9]{3}-[0-9]{4}/);
-  if (mobileNumber && regex.test(mobileNumber)) {
+  const regexTenDigitFormat = new RegExp(/[0-9]{3}-[0-9]{3}-[0-9]{4}/);
+  const regexSevenDigitFormat = new RegExp(/[0-9]{3}-[0-9]{4}/);
+  if (
+    (mobileNumber && regexTenDigitFormat.test(mobileNumber)) ||
+    regexSevenDigitFormat.test(mobileNumber)
+  ) {
     return next();
   }
-  next({
-    status: 400,
-    message:
-      "Reservation must include a mobile_number in this format: XXX-XXX-XXXX.",
-  });
+  const { errors } = res.locals;
+  errors.message.push(
+    "Reservation must include a mobile_number in this format: XXX-XXX-XXXX."
+  );
+  return next();
 }
 
 function hasReservationDateInProperFormat(req, res, next) {
@@ -48,39 +64,61 @@ function hasReservationDateInProperFormat(req, res, next) {
     res.locals.reservationDate = reservationDate;
     return next();
   }
-  next({
-    status: 400,
-    message:
-      "Reservation must include a reservation_date in this format: MM/DD/YYYY.",
-  });
+  res.locals.reservationDate = reservationDate;
+  const { errors } = res.locals;
+  errors.message.push(
+    "Reservation must include a reservation_date in this format: MM/DD/YYYY."
+  );
+
+  return next();
 }
 
 function reservationDateNotInPast(req, res, next) {
   const { reservationDate } = res.locals;
-  if (Date.parse(reservationDate) < Date.now()) {
-    next({
-      status: 400,
-      message:
-        "Reservation cannot be made in the past. Only future reservations are allowed.",
-    });
+
+  const date = new Date();
+  const [month, day, year] = [
+    date.getMonth() + 1,
+    date.getDate(),
+    date.getFullYear(),
+  ];
+
+  if (reservationDate) {
+    const resDateYear = reservationDate.slice(0, 4);
+    const resDateMonth = reservationDate.slice(5, 7);
+    const resDateDay = reservationDate.slice(8);
+
+    if (
+      resDateYear < year ||
+      (resDateYear === year && resDateMonth < month) ||
+      (resDateYear === year && resDateMonth === month && resDateDay < day)
+    ) {
+      const { errors } = res.locals;
+      errors.message.push(
+        "Reservations cannot be made in the past. Only future reservations are allowed."
+      );
+      return next();
+    }
   }
   return next();
 }
 
 function reservationDateNotATuesday(req, res, next) {
   const { reservationDate } = res.locals;
-  const resDateYear = reservationDate.slice(0, 4);
-  const resDateMonth = reservationDate.slice(5, 7) - 1;
-  const resDateDay = reservationDate.slice(8);
-  const resDateDayOfWeek = new Date(resDateYear, resDateMonth, resDateDay)
-    .toDateString()
-    .slice(0, 3);
-  if (resDateDayOfWeek === "Tue") {
-    next({
-      status: 400,
-      message:
-        "Reservations cannot be made on a Tuesday, when the restuarant is closed.",
-    });
+  if (reservationDate) {
+    const resDateYear = reservationDate.slice(0, 4);
+    const resDateMonth = reservationDate.slice(5, 7) - 1;
+    const resDateDay = reservationDate.slice(8);
+    const resDateDayOfWeek = new Date(resDateYear, resDateMonth, resDateDay)
+      .toDateString()
+      .slice(0, 3);
+    if (resDateDayOfWeek === "Tue") {
+      const { errors } = res.locals;
+      errors.message.push(
+        "Reservations cannot be made on a Tuesday, when the restuarant is closed."
+      );
+      return next();
+    }
   }
   return next();
 }
@@ -91,11 +129,11 @@ function hasReservationTimeInProperFormat(req, res, next) {
   if (reservationTime && regex.test(reservationTime)) {
     return next();
   }
-  next({
-    status: 400,
-    message:
-      "Reservation must include a reservation_time in this format: HH:MM.",
-  });
+  const { errors } = res.locals;
+  errors.message.push(
+    "Reservation must include a reservation_time in this format: HH:MM."
+  );
+  return next();
 }
 
 function hasPeopleInProperFormat(req, res, next) {
@@ -104,11 +142,29 @@ function hasPeopleInProperFormat(req, res, next) {
   if (people && !regex.test(people) && typeof people === "number") {
     return next();
   }
-  next({
-    status: 400,
-    message:
-      "Reservation must indicate the number of people in a party, ranging from 1 to 6.",
+  const { errors } = res.locals;
+  errors.message.push(
+    "Reservation must indicate the number of people in a party, ranging from 1 to 6."
+  );
+  return next();
+}
+
+function captureValidationErrors(req, res, next) {
+  const { errors } = res.locals;
+  const uniqueErrorMessages = errors.message.filter((message, index, array) => {
+    return array.indexOf(message) === index;
   });
+  errors.message = uniqueErrorMessages;
+
+  if (errors.message.length > 1) {
+    next(errors);
+  } else if (errors.message.length) {
+    errors.message = errors.message[0];
+
+    next(errors);
+  }
+
+  return next();
 }
 
 /**
@@ -134,6 +190,7 @@ module.exports = {
   list: asyncErrorBoundary(list),
   create: [
     hasData,
+    initializingErrorsObject,
     hasFirstName,
     hasLastName,
     hasMobileNumberInProperFormat,
@@ -142,6 +199,7 @@ module.exports = {
     reservationDateNotATuesday,
     hasReservationTimeInProperFormat,
     hasPeopleInProperFormat,
+    captureValidationErrors,
     asyncErrorBoundary(create),
   ],
 };
