@@ -60,16 +60,14 @@ function hasMobileNumberInProperFormat(req, res, next) {
 function hasReservationDateInProperFormat(req, res, next) {
   const reservationDate = req.body.data.reservation_date;
   const regex = new RegExp(/\d{4}-\d{2}-\d{2}/);
+  res.locals.reservationDate = reservationDate;
   if (reservationDate && regex.test(reservationDate)) {
-    res.locals.reservationDate = reservationDate;
     return next();
   }
-  res.locals.reservationDate = reservationDate;
   const { errors } = res.locals;
   errors.message.push(
     "Reservation must include a reservation_date in this format: MM/DD/YYYY."
   );
-
   return next();
 }
 
@@ -84,9 +82,14 @@ function reservationDateNotInPast(req, res, next) {
   ];
 
   if (reservationDate) {
-    const resDateYear = reservationDate.slice(0, 4);
-    const resDateMonth = reservationDate.slice(5, 7);
-    const resDateDay = reservationDate.slice(8);
+    const resDateYear = Number(reservationDate.slice(0, 4));
+    const resDateMonth = Number(reservationDate.slice(5, 7));
+    const resDateDay = Number(reservationDate.slice(8));
+    res.locals.resDateObject = {
+      year: resDateYear,
+      month: resDateMonth,
+      day: resDateDay,
+    };
 
     if (
       resDateYear < year ||
@@ -106,10 +109,12 @@ function reservationDateNotInPast(req, res, next) {
 function reservationDateNotATuesday(req, res, next) {
   const { reservationDate } = res.locals;
   if (reservationDate) {
-    const resDateYear = reservationDate.slice(0, 4);
-    const resDateMonth = reservationDate.slice(5, 7) - 1;
-    const resDateDay = reservationDate.slice(8);
-    const resDateDayOfWeek = new Date(resDateYear, resDateMonth, resDateDay)
+    const { resDateObject } = res.locals;
+    const resDateDayOfWeek = new Date(
+      resDateObject.year,
+      resDateObject.month - 1,
+      resDateObject.day
+    )
       .toDateString()
       .slice(0, 3);
     if (resDateDayOfWeek === "Tue") {
@@ -126,6 +131,7 @@ function reservationDateNotATuesday(req, res, next) {
 function hasReservationTimeInProperFormat(req, res, next) {
   const reservationTime = req.body.data.reservation_time;
   const regex = new RegExp(/[0-9]{2}:[0-9]{2}/);
+  res.locals.reservationTime = reservationTime;
   if (reservationTime && regex.test(reservationTime)) {
     return next();
   }
@@ -133,6 +139,34 @@ function hasReservationTimeInProperFormat(req, res, next) {
   errors.message.push(
     "Reservation must include a reservation_time in this format: HH:MM."
   );
+  return next();
+}
+
+function hasReservationTimeWithinEligibleTimeframe(req, res, next) {
+  const { reservationTime } = res.locals;
+  const { errors } = res.locals;
+  const resTimeNum = reservationTime.replace(":", "");
+
+  if (Number(resTimeNum) < 1030 || Number(resTimeNum) > 2130) {
+    errors.message.push(
+      "The reservation time cannot be before 10:30 AM or after 9:30 PM."
+    );
+    return next();
+  }
+
+  const currentHours = new Date().getHours();
+  const currentMinutes = new Date().getMinutes();
+  const resTimeHours = Number(resTimeNum.slice(0, 2));
+  const resTimeMinutes = Number(resTimeNum.slice(2, 4));
+
+  if (
+    resTimeHours < currentHours ||
+    (resTimeHours === currentHours && resTimeMinutes < currentMinutes)
+  ) {
+    errors.message.push("The reservation time cannot be in the past.");
+    return next();
+  }
+
   return next();
 }
 
@@ -160,7 +194,6 @@ function captureValidationErrors(req, res, next) {
     next(errors);
   } else if (errors.message.length) {
     errors.message = errors.message[0];
-
     next(errors);
   }
 
@@ -198,6 +231,7 @@ module.exports = {
     reservationDateNotInPast,
     reservationDateNotATuesday,
     hasReservationTimeInProperFormat,
+    hasReservationTimeWithinEligibleTimeframe,
     hasPeopleInProperFormat,
     captureValidationErrors,
     asyncErrorBoundary(create),
