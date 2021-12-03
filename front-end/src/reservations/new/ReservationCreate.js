@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
-import { today } from "../../utils/date-time";
 import { createReservation } from "../../utils/api";
 import ErrorAlert from "../../layout/ErrorAlert";
 
@@ -26,7 +25,7 @@ function ReservationCreate() {
     event.preventDefault();
     createReservation(reservation)
       .then(() => {
-        history.push("/dashboard");
+        history.push(`/dashboard?date=${reservation.reservation_date}`);
       })
       .catch(setError);
   }
@@ -71,7 +70,6 @@ function ReservationCreate() {
             id="mobile_number"
             name="mobile_number"
             type="tel"
-            pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
             placeholder="123-456-7890"
             require={true}
             onChange={changeHandler}
@@ -86,7 +84,6 @@ function ReservationCreate() {
             name="reservation_date"
             type="date"
             pattern="\d{4}-\d{2}-\d{2}"
-            min={today()}
             require={true}
             onChange={changeHandler}
             value={reservation.reservation_date}
@@ -112,21 +109,16 @@ function ReservationCreate() {
         </div>
         <div>
           <label htmlFor="people">Number of People in Party:</label>
-          <select
+          <input
             id="people"
             name="people"
+            type="text"
+            pattern="[1-6]"
             require={true}
             onChange={changeHandler}
             value={reservation.people}
-          >
-            <option value="">#</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-          </select>
+          />
+          <small>Party size must range from 1-6.</small>
         </div>
         <div>
           <button
