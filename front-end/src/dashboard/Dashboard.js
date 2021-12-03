@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
+import useQuery from "../utils/useQuery";
 import ErrorAlert from "../layout/ErrorAlert";
-import { today, previous, next } from "../utils/date-time";
 import DashboardButtons from "./DashboardButtons";
-import formatReservationTime from "../utils/format-reservation-time";
 
 /**
  * Defines the dashboard page.
@@ -16,40 +15,25 @@ function Dashboard({ date }) {
   const [reservationsError, setReservationsError] = useState(null);
   const [reservationsDate, setReservationsDate] = useState(date);
 
-  useEffect(loadDashboard, [date]);
+  const query = useQuery();
+  const queryDate = query.get("date");
+
+  useEffect(() => {
+    if (queryDate) {
+      setReservationsDate(queryDate);
+    }
+  }, [queryDate]);
+
+  useEffect(loadDashboard, [reservationsDate]);
 
   function loadDashboard() {
     const abortController = new AbortController();
     setReservationsError(null);
-    listReservations({ reservationsDate }, abortController.signal)
+    listReservations({ date: reservationsDate }, abortController.signal)
       .then(setReservations)
       .catch(setReservationsError);
     return () => abortController.abort();
   }
-
-  console.log("reservations:", reservations);
-
-  const reservationsOnCurrentDate = reservations.filter(
-    (reservation) => reservation.reservation_date === reservationsDate
-  );
-
-  console.log("res time formatted with fxn:", formatReservationTime(reservations));
-
-  console.log("res on current date:", reservationsOnCurrentDate);
-
-  const sortedReservations = reservations.sort((reservationA, reservationB) => {
-    const resATimeArray = reservationA.reservation_time.split("");
-    const resATimeWithoutColon = resATimeArray.filter(char => char !== ":");
-    const resATime = resATimeWithoutColon.join("");
-
-    const resBTimeArray = reservationB.reservation_time.split("");
-    const resBTimeWithoutColon = resBTimeArray.filter(char => char !== ":");
-    const resBTime = resBTimeWithoutColon.join("");
-    
-    return resATime - resBTime;
-  });
-
-  console.log("sorted res:", sortedReservations);
 
   const reservationsTableRows = reservations.map((reservation) => (
     <tr key={reservation.reservation_id}>
@@ -62,8 +46,6 @@ function Dashboard({ date }) {
     </tr>
   ));
 
-  // {JSON.stringify(reservations)}
-
   return (
     <main>
       <h1>Dashboard</h1>
@@ -71,7 +53,7 @@ function Dashboard({ date }) {
         <h4 className="mb-0">Reservations for Date: {reservationsDate}</h4>
       </div>
       <ErrorAlert error={reservationsError} />
-      <DashboardButtons setReservationsDate={setReservationsDate} />
+      <DashboardButtons reservationsDate={reservationsDate} />
       <table class="table table-info table-hover">
         <thead class="table-primary">
           <tr>
