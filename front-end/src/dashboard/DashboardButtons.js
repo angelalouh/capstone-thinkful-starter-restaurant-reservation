@@ -1,17 +1,30 @@
 import React from "react";
-import { today, previous, next } from "../utils/date-time";
+import { useHistory, useLocation } from "react-router-dom";
+import { previous, next, today } from "../utils/date-time";
 
-function DashboardButtons({ setReservationsDate }) {
+function DashboardButtons({ reservationsDate }) {
+  const history = useHistory();
+  const location = useLocation();
+
   function previousButtonClickHandler() {
-    setReservationsDate((currentDate) => previous(currentDate));
+    history.push({
+      pathname: location.pathname,
+      search: `?date=${previous(reservationsDate)}`,
+    });
   }
 
   function todayButtonClickHandler() {
-    setReservationsDate(today());
+    history.push({
+      pathname: location.pathname,
+      search: `?date=${today()}`,
+    });
   }
 
   function nextButtonClickHandler() {
-    setReservationsDate((currentDate) => next(currentDate));
+    history.push({
+      pathname: location.pathname,
+      search: `?date=${next(reservationsDate)}`,
+    });
   }
 
   return (
