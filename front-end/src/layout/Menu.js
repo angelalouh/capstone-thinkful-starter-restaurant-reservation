@@ -1,6 +1,6 @@
 import React from "react";
-
 import { Link } from "react-router-dom";
+import { today } from "../utils/date-time";
 
 /**
  * Defines the menu for this application.
@@ -14,7 +14,7 @@ function Menu() {
       <div className="container-fluid d-flex flex-column p-0">
         <Link
           className="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0"
-          to="/"
+          to={{pathname: "/dashboard", search: `?date=${today()}`}}
         >
           <div className="sidebar-brand-text mx-3">
             <span>Periodic Tables</span>
@@ -23,7 +23,7 @@ function Menu() {
         <hr className="sidebar-divider my-0" />
         <ul className="nav navbar-nav text-light" id="accordionSidebar">
           <li className="nav-item">
-            <Link className="nav-link" to="/dashboard">
+            <Link className="nav-link" to={{pathname: "/dashboard", search: `?date=${today()}`}}>
               <span className="oi oi-dashboard" />
               &nbsp;Dashboard
             </Link>
