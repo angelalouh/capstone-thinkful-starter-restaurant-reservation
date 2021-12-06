@@ -68,7 +68,7 @@ export async function listReservations(params, signal) {
     .then(formatReservationTime);
 }
 
-// Create new reservation:
+// Create New Reservation:
 export async function createReservation(reservation, signal) {
   const url = `${API_BASE_URL}/reservations`;
   if (reservation.people.length) {
@@ -82,4 +82,38 @@ export async function createReservation(reservation, signal) {
     signal,
   };
   return await fetchJson(url, options);
+}
+
+// Create New Table:
+export async function createTable(table, signal) {
+  const url = `${API_BASE_URL}/tables`;
+  if (table.capacity.length) {
+    const tableCapacityNum = Number(table.capacity);
+    table.capacity = tableCapacityNum;
+  }
+  const options = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data: table }),
+    signal,
+  };
+  return await fetchJson(url, options);
+}
+
+// List Existing Tables:
+export async function listTables(signal) {
+  const url = `${API_BASE_URL}/tables`;
+  return await fetchJson(url, { headers, signal }, []);
+}
+
+// Update Table with Assignment of Reservation
+export async function seatReservation(tableAssignment, signal) {
+  const url = `${API_BASE_URL}/tables/${tableAssignment.table_id}/seat`;
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: { reservation_id: tableAssignment.reservation_id } }),
+    signal,
+  };
+  return await fetchJson(url, options, {});
 }
