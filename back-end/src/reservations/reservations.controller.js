@@ -72,31 +72,26 @@ function hasReservationDateInProperFormat(req, res, next) {
 }
 
 function reservationDateNotInPast(req, res, next) {
-  const { reservationDate } = res.locals;
+  const { reservationDate, errors } = res.locals;
 
+  // UTC date:
   const date = new Date();
+
   const [month, day, year] = [
-    date.getMonth() + 1,
+    // local time's month represented as an integer # ranging from 0 to 11
+    date.getMonth(),
     date.getDate(),
     date.getFullYear(),
   ];
 
-  if (reservationDate) {
-    const resDateYear = Number(reservationDate.slice(0, 4));
-    const resDateMonth = Number(reservationDate.slice(5, 7));
-    const resDateDay = Number(reservationDate.slice(8));
-    res.locals.resDateObject = {
-      year: resDateYear,
-      month: resDateMonth,
-      day: resDateDay,
-    };
+  const currentDate = new Date(Date.UTC(year, month, day));
+  res.locals.currentDate = currentDate;
 
-    if (
-      resDateYear < year ||
-      (resDateYear === year && resDateMonth < month) ||
-      (resDateYear === year && resDateMonth === month && resDateDay < day)
-    ) {
-      const { errors } = res.locals;
+  if (reservationDate) {
+    const resDate = new Date(reservationDate);
+    res.locals.resDate = resDate;
+
+    if (resDate < currentDate) {
       errors.message.push(
         "Reservations cannot be made in the past. Only future reservations are allowed."
       );
@@ -107,18 +102,19 @@ function reservationDateNotInPast(req, res, next) {
 }
 
 function reservationDateNotATuesday(req, res, next) {
-  const { reservationDate } = res.locals;
+  const { reservationDate, errors } = res.locals;
+
   if (reservationDate) {
-    const { resDateObject } = res.locals;
+    const resDateYear = Number(reservationDate.slice(0, 4));
+    const resDateMonth = Number(reservationDate.slice(5, 7)) - 1;
+    const resDateDay = Number(reservationDate.slice(8));
     const resDateDayOfWeek = new Date(
-      resDateObject.year,
-      resDateObject.month - 1,
-      resDateObject.day
-    )
-      .toDateString()
-      .slice(0, 3);
-    if (resDateDayOfWeek === "Tue") {
-      const { errors } = res.locals;
+      resDateYear,
+      resDateMonth,
+      resDateDay
+    ).getDay();
+
+    if (resDateDayOfWeek === 2) {
       errors.message.push(
         "Reservations cannot be made on a Tuesday, when the restuarant is closed."
       );
@@ -132,9 +128,11 @@ function hasReservationTimeInProperFormat(req, res, next) {
   const reservationTime = req.body.data.reservation_time;
   const regex = new RegExp(/[0-9]{2}:[0-9]{2}/);
   res.locals.reservationTime = reservationTime;
+
   if (reservationTime && regex.test(reservationTime)) {
     return next();
   }
+
   const { errors } = res.locals;
   errors.message.push(
     "Reservation must include a reservation_time in this format: HH:MM."
@@ -143,28 +141,31 @@ function hasReservationTimeInProperFormat(req, res, next) {
 }
 
 function hasReservationTimeWithinEligibleTimeframe(req, res, next) {
-  const { reservationTime } = res.locals;
-  const { errors } = res.locals;
-  const resTimeNum = reservationTime.replace(":", "");
+  const { reservationTime, errors, resDate, currentDate } = res.locals;
 
-  if (Number(resTimeNum) < 1030 || Number(resTimeNum) > 2130) {
-    errors.message.push(
-      "The reservation time cannot be before 10:30 AM or after 9:30 PM."
-    );
-    return next();
-  }
+  if (reservationTime && resDate && currentDate) {
+    const resDateTimeInMs = resDate.getTime();
+    const currentDateTimeInMs = currentDate.getTime();
 
-  const currentHours = new Date().getHours();
-  const currentMinutes = new Date().getMinutes();
-  const resTimeHours = Number(resTimeNum.slice(0, 2));
-  const resTimeMinutes = Number(resTimeNum.slice(2, 4));
+    const resTimeNum = reservationTime.replace(":", "");
 
-  if (
-    resTimeHours < currentHours ||
-    (resTimeHours === currentHours && resTimeMinutes < currentMinutes)
-  ) {
-    errors.message.push("The reservation time cannot be in the past.");
-    return next();
+    if (Number(resTimeNum) < 1030 || Number(resTimeNum) > 2130) {
+      errors.message.push(
+        "The reservation time cannot be before 10:30 AM or after 9:30 PM."
+      );
+      return next();
+    }
+
+    const currentHours = new Date().getHours();
+    const currentMinutes = new Date().getMinutes();
+    const currentTime = currentHours
+      .toString()
+      .concat(currentMinutes.toString());
+
+    if (resDateTimeInMs === currentDateTimeInMs && resTimeNum < currentTime) {
+      errors.message.push("The reservation time cannot be in the past.");
+      return next();
+    }
   }
 
   return next();
@@ -201,6 +202,21 @@ function captureValidationErrors(req, res, next) {
 }
 
 /**
+ * Validation function for the read handler
+ */
+async function reservationExists(req, res, next) {
+  const reservation = await service.read(req.params.reservation_id);
+  if (reservation) {
+    res.locals.reservation = reservation;
+    return next();
+  }
+  next({
+    status: 404,
+    message: `Reservation with id: ${reservation.reservation_id} does not exist.`,
+  });
+}
+
+/**
  * List handler for reservations resources
  */
 async function list(req, res) {
@@ -217,6 +233,13 @@ async function create(req, res) {
   res.status(201).json({
     data: newReservation,
   });
+}
+
+/**
+ * Read handler for reservations resources
+ */
+function read(req, res) {
+  res.json({ data: res.locals.reservation });
 }
 
 module.exports = {
@@ -236,4 +259,5 @@ module.exports = {
     captureValidationErrors,
     asyncErrorBoundary(create),
   ],
+  read: [asyncErrorBoundary(reservationExists), read],
 };
