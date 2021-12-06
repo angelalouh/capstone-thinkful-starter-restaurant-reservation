@@ -39,32 +39,41 @@ function TableCreate() {
       <h1>Create Table</h1>
       <ErrorAlert error={error} />
       <form onSubmit={submitHandler}>
-        <div>
-          <label htmlFor="table_name">Table Name:</label>
+        <div class="col-5 mb-3 pl-1">
+          <label htmlFor="table_name" class="form-label">Table Name:</label>
           <input
             id="table_name"
             name="table_name"
             type="text"
+            class="form-control"
+            aria-describedby="table_nameHelpBlock"
             onChange={changeHandler}
             value={table.table_name}
           />
+          <div id="table_nameHelpBlock" class="form-text">
+            Table name must be at least 2 characters long.
+          </div>
         </div>
-        <div>
-          <label htmlFor="capacity">Capacity:</label>
+        <div class="col-5 mb-3 pl-1">
+          <label htmlFor="capacity" class="form-label">Capacity:</label>
           <input
             id="capacity"
             name="capacity"
             type="text"
+            class="form-control"
+            aria-describedby="capacityHelpBlock"
             require={true}
             onChange={changeHandler}
             value={table.capacity}
           />
-          <small>Must be at least 1</small>
+          <div id="capacityHelpBlock" class="form-text">
+            Table capacity must be at least 1.
+          </div>
         </div>
         <div>
           <button
             type="button"
-            class="btn btn-danger mr-2"
+            class="btn btn-danger mr-2 ml-1"
             onClick={cancelHandler}
           >
             <svg
