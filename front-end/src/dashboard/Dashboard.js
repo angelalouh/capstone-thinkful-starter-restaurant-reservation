@@ -46,7 +46,7 @@ function Dashboard({ date }) {
       <td>{reservation.people}</td>
       <td>
         <a
-          class="btn btn-primary"
+          class="btn btn-primary btn-sm"
           href={`/reservations/${reservation.reservation_id}/seat`}
           role="button"
         >
@@ -74,7 +74,7 @@ function Dashboard({ date }) {
               <th scope="col">Last Name</th>
               <th scope="col">Mobile Number</th>
               <th scope="col">Party Size</th>
-              <th scope="col">Seat Reservation</th>
+              <th scope="col">Reservation Status</th>
             </tr>
           </thead>
           <tbody>{reservationsTableRows}</tbody>
