@@ -14,7 +14,7 @@ function ErrorAlert({ error }) {
       return <li>{message}</li>;
     });
     return (
-      <div class="alert alert-danger m-2" role="alert">
+      <div class="alert alert-danger m-1 mb-2" role="alert">
         <h5 class="alert-heading mb-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -35,7 +35,7 @@ function ErrorAlert({ error }) {
 
   return (
     error && (
-      <div className="alert alert-danger m-2" role="alert">
+      <div className="alert alert-danger m-1 mb-2" role="alert">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="17"
