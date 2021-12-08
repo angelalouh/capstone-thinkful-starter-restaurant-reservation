@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { listTables } from "../utils/api";
+import { listTables, deleteTableAssignment } from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
 
 function DashboardTablesList() {
@@ -21,7 +21,7 @@ function DashboardTablesList() {
       tableStatus = "Occupied";
     }
 
-    let occupant = null;    
+    let occupant = null;
     if (tableStatus === "Occupied") {
       occupant = ` by Reservation ID: ${table.reservation_id}`;
     }
@@ -29,10 +29,41 @@ function DashboardTablesList() {
     return (
       <li class="list-group-item col" key={table.table_id}>
         <div class="fw-bold fs-5">{table.table_name}</div>
-        <p data-table-id-status={`${table.table_id}`}>{tableStatus}{occupant}</p>
+        <p data-table-id-status={`${table.table_id}`}>
+          {tableStatus}
+          {occupant}
+        </p>
+        <FinishButton tableStatus={tableStatus} tableId={table.table_id} />
       </li>
     );
   });
+
+  function FinishButton({ tableStatus, tableId }) {
+    if (tableStatus === "Occupied") {
+      return (
+        <button
+          type="button"
+          class="btn btn-success btn-sm"
+          data-table-id-finish={tableId}
+          onClick={() => handleFinishButtonClick(tableId)}
+        >
+          Finish
+        </button>
+      );
+    }
+    return null;
+  }
+
+  async function handleFinishButtonClick(tableId) {
+    if (
+      window.confirm(
+        "Is this table ready to seat new guests? This cannot be undone."
+      )
+    ) {
+      await deleteTableAssignment(tableId);
+      loadTables();
+    }
+  }
 
   return (
     <>
