@@ -32,7 +32,6 @@ headers.append("Content-Type", "application/json");
 async function fetchJson(url, options, onCancel) {
   try {
     const response = await fetch(url, options);
-
     if (response.status === 204) {
       return null;
     }
@@ -106,7 +105,7 @@ export async function listTables(signal) {
   return await fetchJson(url, { headers, signal }, []);
 }
 
-// Update Table with Assignment of Reservation
+// Update Table with Assignment of Reservation:
 export async function seatReservation(tableAssignment, signal) {
   const url = `${API_BASE_URL}/tables/${tableAssignment.table_id}/seat`;
   const options = {
@@ -116,4 +115,10 @@ export async function seatReservation(tableAssignment, signal) {
     signal,
   };
   return await fetchJson(url, options, {});
+}
+
+// Delete Table Assignment:
+export async function deleteTableAssignment(tableId) {
+  const url = `${API_BASE_URL}/tables/${tableId}/seat`;
+  return await fetchJson(url, { method: "DELETE", headers }, {});
 }
