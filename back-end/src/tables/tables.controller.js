@@ -43,6 +43,22 @@ function tableNameAtLeastTwoCharLong(req, res, next) {
   return next();
 }
 
+async function tableNameIsNew(req, res, next) {
+  const { tableName, errors } = res.locals;
+  const existingTables = await service.list();
+  const tableNameExistsAlready = existingTables.find(
+    (table) => table.table_name === tableName
+  );
+
+  if (tableNameExistsAlready) {
+    errors.message.push(
+      "This table name exists already. Please choose a new one."
+    );
+    return next();
+  }
+  return next();
+}
+
 function hasCapacityInProperFormat(req, res, next) {
   const capacity = req.body.data.capacity;
   if (capacity && typeof capacity === "number" && capacity >= 1) {
@@ -80,7 +96,10 @@ async function tableExists(req, res, next) {
     res.locals.table = table;
     return next();
   }
-  next({ status: 404, message: "This table does not exist." });
+  next({
+    status: 404,
+    message: `Table with id: ${req.params.table_id} does not exist.`,
+  });
 }
 
 function hasReservationId(req, res, next) {
@@ -121,13 +140,29 @@ function tableHasCapacityForReservation(req, res, next) {
 
 function tableIsNotOccupied(req, res, next) {
   const { table } = res.locals;
-  if (table && !table.reservation_id) {
+  if (table && table.reservation_id) {
+    if (req.method === "DELETE") {
+      return next();
+    }
+
+    if (req.method === "PUT") {
+      next({
+        status: 400,
+        message: `Table ${table.table_name} is currently occupied.`,
+      });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    next({
+      status: 400,
+      message: "Table is currently not occupied.",
+    });
+  }
+
+  if (req.method === "PUT") {
     return next();
   }
-  next({
-    status: 400,
-    message: `Table ${table.table_name} is currently occupied.`,
-  });
 }
 
 /**
@@ -155,6 +190,21 @@ async function update(req, res) {
 }
 
 /**
+ * Delete handler for tables resources
+ */
+
+async function destroy(req, res) {
+  const { table } = res.locals;
+  const freeUpTable = {
+    ...table,
+    reservation_id: null,
+  };
+  await service.update(freeUpTable);
+  const data = await service.readTable(table.table_id);
+  res.json({ data });
+}
+
+/**
  * List handler for tables resources
  */
 async function list(req, res) {
@@ -168,6 +218,7 @@ module.exports = {
     initializingErrorsObject,
     hasTableName,
     tableNameAtLeastTwoCharLong,
+    asyncErrorBoundary(tableNameIsNew),
     hasCapacityInProperFormat,
     captureValidationErrors,
     asyncErrorBoundary(create),
@@ -180,5 +231,10 @@ module.exports = {
     tableHasCapacityForReservation,
     tableIsNotOccupied,
     asyncErrorBoundary(update),
+  ],
+  delete: [
+    asyncErrorBoundary(tableExists),
+    tableIsNotOccupied,
+    asyncErrorBoundary(destroy),
   ],
 };
