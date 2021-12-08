@@ -23,7 +23,7 @@ function SeatReservationForm() {
   }
 
   const tableAssignmentOptions = tables.map((table) => (
-    <option value={table.table_id}>
+    <option value={table.table_id} key={table.table_id}>
       {table.table_name} - {table.capacity}
     </option>
   ));
@@ -55,7 +55,7 @@ function SeatReservationForm() {
       <form onSubmit={submitHandler}>
         <div class="row mb-3">
           <label htmlFor="table_assignment" class="col-form-label col-auto pr-1">
-            <h5>Table Assignment:</h5>
+            <h5>Assign to Table:</h5>
           </label>
           <div class="col-auto pl-1">
             <select
@@ -65,7 +65,7 @@ function SeatReservationForm() {
               aria-label="Default select example"
               value={tableAssignment.table_id}
               onChange={changeHandler}
-              require={true}
+              require="true"
             >
               <option defaultValue>Table Name - Table Capacity</option>
               {tableAssignmentOptions}
