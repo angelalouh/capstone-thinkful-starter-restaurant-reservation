@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { listTables, deleteTableAssignment } from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
 
-function DashboardTablesList() {
+function DashboardTablesList({ loadReservations }) {
   const [tables, setTables] = useState([]);
   const [tablesError, setTablesError] = useState(null);
 
@@ -62,6 +62,7 @@ function DashboardTablesList() {
     ) {
       await deleteTableAssignment(tableId);
       loadTables();
+      loadReservations();
     }
   }
 
