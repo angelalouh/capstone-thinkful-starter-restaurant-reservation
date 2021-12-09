@@ -21,13 +21,14 @@ function ReservationCreate() {
     history.goBack();
   }
 
-  function submitHandler(event) {
-    event.preventDefault();
-    createReservation(reservation)
-      .then(() => {
-        history.push(`/dashboard?date=${reservation.reservation_date}`);
-      })
-      .catch(setError);
+  async function submitHandler(event) {
+    try {
+      event.preventDefault();
+      await createReservation(reservation);
+      history.push(`/dashboard?date=${reservation.reservation_date}`);
+    } catch (err) {
+      setError(err);
+    }
   }
 
   function changeHandler({ target: { name, value } }) {
