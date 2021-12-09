@@ -212,8 +212,43 @@ async function reservationExists(req, res, next) {
   }
   next({
     status: 404,
-    message: `Reservation with id: ${reservation.reservation_id} does not exist.`,
+    message: `Reservation with id: ${req.params.reservation_id} does not exist.`,
   });
+}
+
+/**
+ * Validation function for create and update handlers
+ */
+function hasValidStatus(req, res, next) {
+  const requestedReservationStatus = req.body.data.status;
+  if (
+    req.method === "POST" &&
+    requestedReservationStatus &&
+    requestedReservationStatus !== "booked"
+  ) {
+    next({
+      status: 400,
+      message: `New reservation cannot have status of ${requestedReservationStatus}.`,
+    });
+  }
+  if (req.method === "PUT") {
+    const { reservation } = res.locals;
+    const validStatuses = ["booked", "seated", "finished"];
+    if (reservation.status === "finished") {
+      next({
+        status: 400,
+        message: `A finished reservation cannot be updated.`,
+      });
+    }
+
+    if (!validStatuses.includes(requestedReservationStatus)) {
+      next({
+        status: 400,
+        message: `A reservation cannot be updated if it has a status of ${requestedReservationStatus}.`,
+      });
+    }
+  }
+  return next();
 }
 
 /**
@@ -228,10 +263,14 @@ async function list(req, res) {
 /**
  * Create handler for reservations resources
  */
-async function create(req, res) {
-  const newReservation = await service.create(req.body.data);
+async function create(req, res, next) {
+  const newReservation = {
+    ...req.body.data,
+    status: "booked",
+  };
+  const createdReservation = await service.create(newReservation);
   res.status(201).json({
-    data: newReservation,
+    data: createdReservation,
   });
 }
 
@@ -240,6 +279,19 @@ async function create(req, res) {
  */
 function read(req, res) {
   res.json({ data: res.locals.reservation });
+}
+
+/**
+ * Update handler for reservations resources
+ */
+async function update(req, res) {
+  const { reservation } = res.locals;
+  const updatedReservation = {
+    ...reservation,
+    status: req.body.data.status,
+  };
+  const data = await service.updateReservationStatus(updatedReservation);
+  res.json({ data });
 }
 
 module.exports = {
@@ -256,8 +308,14 @@ module.exports = {
     hasReservationTimeInProperFormat,
     hasReservationTimeWithinEligibleTimeframe,
     hasPeopleInProperFormat,
+    hasValidStatus,
     captureValidationErrors,
     asyncErrorBoundary(create),
   ],
   read: [asyncErrorBoundary(reservationExists), read],
+  update: [
+    asyncErrorBoundary(reservationExists),
+    hasValidStatus,
+    asyncErrorBoundary(update),
+  ],
 };
