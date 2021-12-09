@@ -127,6 +127,17 @@ async function reservationExists(req, res, next) {
   });
 }
 
+function reservationHasNotBeenSeated(req, res, next) {
+  const { reservation, reservationId } = res.locals;
+  if (reservation && reservationId && reservation.status === "seated") {
+    next({
+      status: 400,
+      message: `Reservation ${reservationId} has already been seated.`,
+    });
+  }
+  return next();
+}
+
 function tableHasCapacityForReservation(req, res, next) {
   const { table, reservation } = res.locals;
   if (table && reservation && table.capacity >= reservation.people) {
@@ -180,12 +191,9 @@ async function create(req, res) {
  * Update handler for tables resources
  */
 async function update(req, res) {
-  const updatedTable = {
-    ...req.body.data,
-    table_id: res.locals.table.table_id,
-  };
-  await service.update(updatedTable);
-  const data = await service.readTable(res.locals.table.table_id);
+  const { table_id } = res.locals.table;
+  const { reservation_id } = req.body.data;
+  const data = await service.updateTableAssignment(table_id, reservation_id);
   res.json({ data });
 }
 
@@ -194,13 +202,8 @@ async function update(req, res) {
  */
 
 async function destroy(req, res) {
-  const { table } = res.locals;
-  const freeUpTable = {
-    ...table,
-    reservation_id: null,
-  };
-  await service.update(freeUpTable);
-  const data = await service.readTable(table.table_id);
+  const { table_id, reservation_id } = res.locals.table;
+  const data = await service.deleteTableAssignment(table_id, reservation_id);
   res.json({ data });
 }
 
@@ -228,6 +231,7 @@ module.exports = {
     asyncErrorBoundary(tableExists),
     hasReservationId,
     asyncErrorBoundary(reservationExists),
+    reservationHasNotBeenSeated,
     tableHasCapacityForReservation,
     tableIsNotOccupied,
     asyncErrorBoundary(update),
