@@ -12,8 +12,6 @@ function TableCreate() {
     capacity: "",
   });
 
-  console.log("table:", table);
-
   function changeHandler({ target: { name, value } }) {
     setTable((previousTable) => ({
       ...previousTable,
@@ -40,7 +38,9 @@ function TableCreate() {
       <ErrorAlert error={error} />
       <form onSubmit={submitHandler}>
         <div class="col-5 mb-3 pl-1">
-          <label htmlFor="table_name" class="form-label">Table Name:</label>
+          <label htmlFor="table_name" class="form-label">
+            Table Name:
+          </label>
           <input
             id="table_name"
             name="table_name"
@@ -55,7 +55,9 @@ function TableCreate() {
           </div>
         </div>
         <div class="col-5 mb-3 pl-1">
-          <label htmlFor="capacity" class="form-label">Capacity:</label>
+          <label htmlFor="capacity" class="form-label">
+            Capacity:
+          </label>
           <input
             id="capacity"
             name="capacity"
