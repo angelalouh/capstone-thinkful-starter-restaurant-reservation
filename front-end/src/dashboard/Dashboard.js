@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
+import { formatAsTime } from "../utils/date-time";
 import useQuery from "../utils/useQuery";
 import ErrorAlert from "../layout/ErrorAlert";
 import DashboardTablesList from "./DashboardTablesList";
@@ -36,25 +37,45 @@ function Dashboard({ date }) {
     return () => abortController.abort();
   }
 
-  const reservationsTableRows = reservations.map((reservation) => (
-    <tr key={reservation.reservation_id}>
-      <th scope="row">{reservation.reservation_time}</th>
-      <td>{reservation.reservation_id}</td>
-      <td>{reservation.first_name}</td>
-      <td>{reservation.last_name}</td>
-      <td>{reservation.mobile_number}</td>
-      <td>{reservation.people}</td>
-      <td>
+  const reservationsTableRows = reservations.map((reservation) => {
+    if (reservation.status === "finished") {
+      return null;
+    }
+    return (
+      <tr key={reservation.reservation_id}>
+        <th scope="row">{formatAsTime(reservation.reservation_time)}</th>
+        <td>{reservation.reservation_id}</td>
+        <td>{reservation.first_name}</td>
+        <td>{reservation.last_name}</td>
+        <td>{reservation.mobile_number}</td>
+        <td>{reservation.people}</td>
+        <td>
+          <p data-reservation-id-status={reservation.reservation_id}>
+            {reservation.status}
+          </p>
+          <SeatButton
+            reservationId={reservation.reservation_id}
+            status={reservation.status}
+          />
+        </td>
+      </tr>
+    );
+  });
+
+  function SeatButton({ reservationId, status }) {
+    if (status === "booked") {
+      return (
         <a
           class="btn btn-primary btn-sm"
-          href={`/reservations/${reservation.reservation_id}/seat`}
+          href={`/reservations/${reservationId}/seat`}
           role="button"
         >
           Seat
         </a>
-      </td>
-    </tr>
-  ));
+      );
+    }
+    return null;
+  }
 
   return (
     <main>
@@ -80,7 +101,7 @@ function Dashboard({ date }) {
           <tbody>{reservationsTableRows}</tbody>
         </table>
       </div>
-      <DashboardTablesList />
+      <DashboardTablesList loadReservations={loadReservations} />
     </main>
   );
 }
