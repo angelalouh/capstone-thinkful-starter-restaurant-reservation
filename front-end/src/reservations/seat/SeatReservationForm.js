@@ -32,13 +32,20 @@ function SeatReservationForm() {
     history.goBack();
   }
 
-  function submitHandler(event) {
+  async function submitHandler(event) {
     event.preventDefault();
-    seatReservation(tableAssignment)
-      .then(() => {
+    if (!tableAssignment.table_id) {
+      setError({
+        message: "Please select a table option from the drop down menu.",
+      });
+    } else {
+      try {
+        await seatReservation(tableAssignment);
         history.push("/");
-      })
-      .catch(setError);
+      } catch (err) {
+        setError(err);
+      }
+    }
   }
 
   function changeHandler({ target: { name, value } }) {
@@ -54,7 +61,10 @@ function SeatReservationForm() {
       <ErrorAlert error={error} />
       <form onSubmit={submitHandler}>
         <div class="row mb-3">
-          <label htmlFor="table_assignment" class="col-form-label col-auto pr-1">
+          <label
+            htmlFor="table_assignment"
+            class="col-form-label col-auto pr-1"
+          >
             <h5>Assign to Table:</h5>
           </label>
           <div class="col-auto pl-1">
@@ -67,7 +77,7 @@ function SeatReservationForm() {
               onChange={changeHandler}
               require="true"
             >
-              <option defaultValue>Table Name - Table Capacity</option>
+              <option value="">Table Name - Table Capacity</option>
               {tableAssignmentOptions}
             </select>
           </div>
