@@ -10,8 +10,8 @@ import React from "react";
 
 function ErrorAlert({ error }) {
   if (error && Array.isArray(error.message)) {
-    const errorMessagesList = error.message.map((message) => {
-      return <li>{message}</li>;
+    const errorMessagesList = error.message.map((message, index) => {
+      return <li key={index}>{message}</li>;
     });
     return (
       <div class="alert alert-danger m-1 mb-2" role="alert">
