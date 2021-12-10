@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
-import { formatAsTime } from "../utils/date-time";
 import useQuery from "../utils/useQuery";
 import ErrorAlert from "../layout/ErrorAlert";
+import ReservationsView from "../reservations/ReservationsView";
 import DashboardTablesList from "./DashboardTablesList";
 import DashboardButtons from "./DashboardButtons";
 
@@ -37,46 +37,6 @@ function Dashboard({ date }) {
     return () => abortController.abort();
   }
 
-  const reservationsTableRows = reservations.map((reservation) => {
-    if (reservation.status === "finished") {
-      return null;
-    }
-    return (
-      <tr key={reservation.reservation_id}>
-        <th scope="row">{formatAsTime(reservation.reservation_time)}</th>
-        <td>{reservation.reservation_id}</td>
-        <td>{reservation.first_name}</td>
-        <td>{reservation.last_name}</td>
-        <td>{reservation.mobile_number}</td>
-        <td>{reservation.people}</td>
-        <td>
-          <p data-reservation-id-status={reservation.reservation_id}>
-            {reservation.status}
-          </p>
-          <SeatButton
-            reservationId={reservation.reservation_id}
-            status={reservation.status}
-          />
-        </td>
-      </tr>
-    );
-  });
-
-  function SeatButton({ reservationId, status }) {
-    if (status === "booked") {
-      return (
-        <a
-          class="btn btn-primary btn-sm"
-          href={`/reservations/${reservationId}/seat`}
-          role="button"
-        >
-          Seat
-        </a>
-      );
-    }
-    return null;
-  }
-
   return (
     <main>
       <h1>Dashboard</h1>
@@ -85,22 +45,7 @@ function Dashboard({ date }) {
       </div>
       <DashboardButtons reservationsDate={reservationsDate} />
       <ErrorAlert error={reservationsError} />
-      <div>
-        <table class="table table-info table-hover">
-          <thead class="table-primary">
-            <tr>
-              <th scope="col">Reservation Time</th>
-              <th scope="col">Reservation ID</th>
-              <th scope="col">First Name</th>
-              <th scope="col">Last Name</th>
-              <th scope="col">Mobile Number</th>
-              <th scope="col">Party Size</th>
-              <th scope="col">Reservation Status</th>
-            </tr>
-          </thead>
-          <tbody>{reservationsTableRows}</tbody>
-        </table>
-      </div>
+      <ReservationsView reservations={reservations} />
       <DashboardTablesList loadReservations={loadReservations} />
     </main>
   );
