@@ -252,15 +252,6 @@ function hasValidStatus(req, res, next) {
 }
 
 /**
- * List handler for reservations resources
- */
-async function list(req, res) {
-  const queriedResDate = req.query.date;
-  const data = await service.listReservationsOnQueriedDate(queriedResDate);
-  res.json({ data });
-}
-
-/**
  * Create handler for reservations resources
  */
 async function create(req, res, next) {
@@ -292,6 +283,20 @@ async function update(req, res) {
   };
   const data = await service.updateReservationStatus(updatedReservation);
   res.json({ data });
+}
+
+/**
+ * List handler for reservations resources
+ */
+ async function list(req, res) {
+  const { date, mobile_number } = req.query;
+  if (date) {
+    const data = await service.listReservationsOnQueriedDate(date);
+    res.json({ data });
+  } else if (mobile_number) {
+    const data = await service.searchReservationByPhone(mobile_number);
+    res.json({ data });
+  }
 }
 
 module.exports = {
