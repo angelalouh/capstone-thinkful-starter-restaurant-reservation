@@ -7,6 +7,7 @@ import { today } from "../utils/date-time";
 import ReservationCreate from "../reservations/new/ReservationCreate";
 import TableCreate from "../tables-new/TableCreate";
 import SeatReservationForm from "../reservations/seat/SeatReservationForm";
+import SearchReservation from "../reservations/search/SearchReservation";
 
 /**
  * Defines all the routes for the application.
@@ -19,10 +20,13 @@ function Routes() {
   return (
     <Switch>
       <Route exact={true} path="/">
-        <Redirect to={{pathname: "/dashboard", search: `?date=${today()}`}} />
+        <Redirect to={{ pathname: "/dashboard", search: `?date=${today()}` }} />
       </Route>
       <Route path="/dashboard">
         <Dashboard date={today()} />
+      </Route>
+      <Route path="/search">
+        <SearchReservation />
       </Route>
       <Route path="/reservations/new">
         <ReservationCreate />
@@ -31,7 +35,7 @@ function Routes() {
         <SeatReservationForm />
       </Route>
       <Route exact={true} path="/reservations">
-        <Redirect to={{pathname: "/dashboard", search: `?date=${today()}`}} />
+        <Redirect to={{ pathname: "/dashboard", search: `?date=${today()}` }} />
       </Route>
       <Route path="/tables/new">
         <TableCreate />
