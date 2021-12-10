@@ -31,13 +31,13 @@ function DashboardButtons({ reservationsDate }) {
     <div class="btn-group mb-4" role="group">
       <button
         type="button"
-        class="btn btn-secondary btn-sm"
+        class="btn btn-secondary btn-sm col-auto"
         onClick={previousButtonClickHandler}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-calendar-minus mr-2 mb-1"
           viewBox="0 0 16 16"
@@ -49,13 +49,13 @@ function DashboardButtons({ reservationsDate }) {
       </button>
       <button
         type="button"
-        class="btn btn-secondary active btn-sm"
+        class="btn btn-secondary active btn-sm col-auto"
         onClick={todayButtonClickHandler}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-calendar-event mr-2 mb-1"
           viewBox="0 0 16 16"
@@ -67,13 +67,13 @@ function DashboardButtons({ reservationsDate }) {
       </button>
       <button
         type="button"
-        class="btn btn-secondary btn-sm"
+        class="btn btn-secondary btn-sm col-auto"
         onClick={nextButtonClickHandler}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           fill="currentColor"
           class="bi bi-calendar-plus mr-2 mb-1"
           viewBox="0 0 16 16"
