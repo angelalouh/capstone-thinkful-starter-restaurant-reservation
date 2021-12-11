@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
 import useQuery from "../utils/useQuery";
 import ErrorAlert from "../layout/ErrorAlert";
-import ReservationsView from "../reservations/ReservationsView";
+import DashboardReservationsTable from "./DashboardReservationsTable";
 import DashboardTablesList from "./DashboardTablesList";
-import DashboardButtons from "./DashboardButtons";
+import DashboardButtons from "./DashboardDateButtons";
 
 /**
  * Defines the dashboard page.
@@ -45,7 +45,10 @@ function Dashboard({ date }) {
       </div>
       <DashboardButtons reservationsDate={reservationsDate} />
       <ErrorAlert error={reservationsError} />
-      <ReservationsView reservations={reservations} />
+      <DashboardReservationsTable
+        reservations={reservations}
+        loadReservations={loadReservations}
+      />
       <DashboardTablesList loadReservations={loadReservations} />
     </main>
   );
