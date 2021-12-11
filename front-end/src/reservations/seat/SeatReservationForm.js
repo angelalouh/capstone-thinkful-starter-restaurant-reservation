@@ -32,19 +32,20 @@ function SeatReservationForm() {
     history.goBack();
   }
 
-  async function submitHandler(event) {
+  function submitHandler(event) {
     event.preventDefault();
+    const abortController = new AbortController();
+    setError(null);
+
     if (!tableAssignment.table_id) {
       setError({
         message: "Please select a table option from the drop down menu.",
       });
     } else {
-      try {
-        await seatReservation(tableAssignment);
-        history.push("/");
-      } catch (err) {
-        setError(err);
-      }
+      seatReservation(tableAssignment, abortController.signal)
+        .then(() => history.push("/"))
+        .catch(setError);
+      return () => abortController.abort();
     }
   }
 

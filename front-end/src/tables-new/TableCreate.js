@@ -6,7 +6,6 @@ import ErrorAlert from "../layout/ErrorAlert";
 function TableCreate() {
   const history = useHistory();
   const [error, setError] = useState(null);
-
   const [table, setTable] = useState({
     table_name: "",
     capacity: "",
@@ -25,11 +24,12 @@ function TableCreate() {
 
   function submitHandler(event) {
     event.preventDefault();
-    createTable(table)
-      .then(() => {
-        history.push("/");
-      })
+    const abortController = new AbortController();
+    setError(null);
+    createTable(table, abortController.signal)
+      .then(() => history.push("/"))
       .catch(setError);
+    return () => abortController.abort();
   }
 
   return (
