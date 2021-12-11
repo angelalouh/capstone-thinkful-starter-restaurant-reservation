@@ -83,6 +83,30 @@ export async function createReservation(reservation, signal) {
   return await fetchJson(url, options);
 }
 
+// Retrieve Specific Reservation:
+export async function readReservation(reservation_id, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation_id}`;
+  return await fetchJson(url, { headers, signal }, {})
+    .then(formatReservationDate)
+    .then(formatReservationTime);
+}
+
+// Update Reservation:
+export async function updateReservation(reservation, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation.reservation_id}`;
+  if (reservation.people.length) {
+    const resPeopleNum = Number(reservation.people);
+    reservation.people = resPeopleNum;
+  }
+  const options = {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({ data: reservation }),
+    signal,
+  };
+  return await fetchJson(url, options, {});
+}
+
 // Update Reservation with Status:
 export async function setReservationStatus(reservation_id, status, signal) {
   const url = `${API_BASE_URL}/reservations/${reservation_id}/status`;
