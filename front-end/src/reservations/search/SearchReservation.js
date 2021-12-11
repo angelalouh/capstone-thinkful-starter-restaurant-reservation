@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import ErrorAlert from "../../layout/ErrorAlert";
 import { listReservations } from "../../utils/api";
-import ReservationsView from "../ReservationsView";
+import DashboardReservationsTable from "../../dashboard/DashboardReservationsTable";
 
 function SearchReservation() {
   const [phoneNumber, setphoneNumber] = useState({
-    mobile_phone: "",
+    mobile_number: "",
   });
   const [foundReservations, setFoundReservations] = useState(null);
   const [error, setError] = useState(null);
@@ -16,14 +16,23 @@ function SearchReservation() {
     }));
   }
 
-  async function submitHandler(event) {
-    try {
-      event.preventDefault();
-      const reservations = await listReservations(phoneNumber);
-      setFoundReservations(reservations);
-    } catch (err) {
-      setError(err);
-    }
+  function submitHandler(event) {
+    event.preventDefault();
+    const abortController = new AbortController();
+    setError(null);
+    listReservations(phoneNumber, abortController.signal)
+      .then(setFoundReservations)
+      .catch(setError);
+    return () => abortController.abort();
+  }
+
+  function loadReservations() {
+    const abortController = new AbortController();
+    setError(null);
+    listReservations(phoneNumber, abortController.signal)
+      .then(setFoundReservations)
+      .catch(setError);
+    return () => abortController.abort();
   }
 
   return (
@@ -58,7 +67,7 @@ function SearchReservation() {
               class="form-control"
               placeholder="Enter a customer's phone number"
               onChange={changeHandler}
-              value={phoneNumber.mobile_phone}
+              value={phoneNumber.mobile_number}
             />
           </div>
           <div class="col-auto pl-2">
@@ -81,7 +90,11 @@ function SearchReservation() {
       {foundReservations ? (
         <div class="mt-5">
           <h2>Matched Reservations:</h2>
-          <ReservationsView reservations={foundReservations} />
+          <DashboardReservationsTable
+            loadReservations={loadReservations}
+            reservations={foundReservations}
+            setFoundReservations={setFoundReservations}
+          />
         </div>
       ) : null}
     </main>
