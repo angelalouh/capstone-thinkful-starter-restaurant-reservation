@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { listReservations } from "../utils/api";
+import useQuery from "../utils/useQuery";
 import ErrorAlert from "../layout/ErrorAlert";
+import DashboardReservationsTable from "./DashboardReservationsTable";
+import DashboardTablesList from "./DashboardTablesList";
+import DashboardButtons from "./DashboardDateButtons";
 
 /**
  * Defines the dashboard page.
@@ -11,13 +15,23 @@ import ErrorAlert from "../layout/ErrorAlert";
 function Dashboard({ date }) {
   const [reservations, setReservations] = useState([]);
   const [reservationsError, setReservationsError] = useState(null);
+  const [reservationsDate, setReservationsDate] = useState(date);
 
-  useEffect(loadDashboard, [date]);
+  const query = useQuery();
+  const queryDate = query.get("date");
 
-  function loadDashboard() {
+  useEffect(() => {
+    if (queryDate) {
+      setReservationsDate(queryDate);
+    }
+  }, [queryDate]);
+
+  useEffect(loadReservations, [reservationsDate]);
+
+  function loadReservations() {
     const abortController = new AbortController();
     setReservationsError(null);
-    listReservations({ date }, abortController.signal)
+    listReservations({ date: reservationsDate }, abortController.signal)
       .then(setReservations)
       .catch(setReservationsError);
     return () => abortController.abort();
@@ -26,11 +40,16 @@ function Dashboard({ date }) {
   return (
     <main>
       <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for date</h4>
+      <div className="d-md-flex mb-2">
+        <h4 className="mb-0">Reservations for Date: {reservationsDate}</h4>
       </div>
+      <DashboardButtons reservationsDate={reservationsDate} />
       <ErrorAlert error={reservationsError} />
-      {JSON.stringify(reservations)}
+      <DashboardReservationsTable
+        reservations={reservations}
+        loadReservations={loadReservations}
+      />
+      <DashboardTablesList loadReservations={loadReservations} />
     </main>
   );
 }
