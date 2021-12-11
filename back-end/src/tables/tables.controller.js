@@ -87,9 +87,8 @@ function captureValidationErrors(req, res, next) {
 }
 
 /**
- * Validation function for the update handler:
+ * Validation functions for the update and delete handlers:
  */
-
 async function tableExists(req, res, next) {
   const table = await service.readTable(req.params.table_id);
   if (table) {
@@ -102,6 +101,36 @@ async function tableExists(req, res, next) {
   });
 }
 
+function tableIsNotOccupied(req, res, next) {
+  const { table } = res.locals;
+  if (table && table.reservation_id) {
+    if (req.method === "DELETE") {
+      return next();
+    }
+
+    if (req.method === "PUT") {
+      next({
+        status: 400,
+        message: `Table ${table.table_name} is currently occupied.`,
+      });
+    }
+  }
+
+  if (req.method === "DELETE") {
+    next({
+      status: 400,
+      message: "Table is currently not occupied.",
+    });
+  }
+
+  if (req.method === "PUT") {
+    return next();
+  }
+}
+
+/**
+ * Validation functions for update handler:
+ */
 function hasReservationId(req, res, next) {
   const { reservation_id } = req.body.data;
   if (reservation_id) {
@@ -147,33 +176,6 @@ function tableHasCapacityForReservation(req, res, next) {
     status: 400,
     message: `This table does not have sufficient capacity for this reservation (party of ${reservation.people}).`,
   });
-}
-
-function tableIsNotOccupied(req, res, next) {
-  const { table } = res.locals;
-  if (table && table.reservation_id) {
-    if (req.method === "DELETE") {
-      return next();
-    }
-
-    if (req.method === "PUT") {
-      next({
-        status: 400,
-        message: `Table ${table.table_name} is currently occupied.`,
-      });
-    }
-  }
-
-  if (req.method === "DELETE") {
-    next({
-      status: 400,
-      message: "Table is currently not occupied.",
-    });
-  }
-
-  if (req.method === "PUT") {
-    return next();
-  }
 }
 
 /**
