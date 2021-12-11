@@ -1,6 +1,6 @@
 const knex = require("../db/connection");
 
-async function create(newReservation) {
+function create(newReservation) {
   return knex("reservations")
     .insert(newReservation)
     .returning("*")
@@ -20,7 +20,7 @@ function searchReservationByPhone(mobile_number) {
     .orderBy("reservation_date");
 }
 
-async function updateReservationStatus(updatedReservation) {
+function update(updatedReservation) {
   return knex("reservations")
     .select("*")
     .where({ reservation_id: updatedReservation.reservation_id })
@@ -28,7 +28,7 @@ async function updateReservationStatus(updatedReservation) {
     .then((updatedRecords) => updatedRecords[0]);
 }
 
-async function listReservationsOnQueriedDate(reservation_date) {
+function listReservationsOnQueriedDate(reservation_date) {
   return knex("reservations")
     .select("*")
     .where({ reservation_date: reservation_date })
@@ -40,6 +40,6 @@ module.exports = {
   create,
   read,
   searchReservationByPhone,
-  updateReservationStatus,
+  update,
   listReservationsOnQueriedDate,
 };
