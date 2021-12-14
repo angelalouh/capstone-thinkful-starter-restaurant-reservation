@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ErrorAlert from "../../layout/ErrorAlert";
 import { listReservations } from "../../utils/api";
+import SearchReservationForm from "./SearchReservationForm";
 import DashboardReservationsTable from "../../dashboard/DashboardReservationsTable";
 
 function SearchReservation() {
@@ -9,22 +10,6 @@ function SearchReservation() {
   });
   const [foundReservations, setFoundReservations] = useState(null);
   const [error, setError] = useState(null);
-
-  function changeHandler({ target: { name, value } }) {
-    setphoneNumber(() => ({
-      [name]: value,
-    }));
-  }
-
-  function submitHandler(event) {
-    event.preventDefault();
-    const abortController = new AbortController();
-    setError(null);
-    listReservations(phoneNumber, abortController.signal)
-      .then(setFoundReservations)
-      .catch(setError);
-    return () => abortController.abort();
-  }
 
   function loadReservations() {
     const abortController = new AbortController();
@@ -37,7 +22,7 @@ function SearchReservation() {
 
   return (
     <main>
-      <h1 class="mb-4">
+      <h1 class="mt-lg-4 mt-1 mb-3">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="32"
@@ -54,39 +39,12 @@ function SearchReservation() {
         Find Reservation
       </h1>
       <ErrorAlert error={error} />
-      <form onSubmit={submitHandler}>
-        <div class="row">
-          <label htmlFor="mobile_number" class="col-auto col-form-label pl-4">
-            <h5>Mobile Number:</h5>
-          </label>
-          <div class="col-sm-5 pl-1">
-            <input
-              id="mobile_number"
-              name="mobile_number"
-              type="text"
-              class="form-control"
-              placeholder="Enter a customer's phone number"
-              onChange={changeHandler}
-              value={phoneNumber.mobile_number}
-            />
-          </div>
-          <div class="col-auto pl-2">
-            <button type="submit" class="btn btn-info">
-              Find
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                fill="currentColor"
-                class="bi bi-search ml-2 mb-1"
-                viewBox="0 0 16 16"
-              >
-                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </form>
+      <SearchReservationForm
+        phoneNumber={phoneNumber}
+        setphoneNumber={setphoneNumber}
+        setFoundReservations={setFoundReservations}
+        setError={setError}
+      />
       {foundReservations ? (
         <div class="mt-5">
           <h2>Matched Reservations:</h2>

@@ -28,7 +28,7 @@ function DashboardButtons({ reservationsDate }) {
   }
 
   return (
-    <div class="btn-group mb-4" role="group">
+    <div class="btn-group mt-1 mb-4" role="group">
       <button
         type="button"
         class="btn btn-secondary btn-sm col-auto"
