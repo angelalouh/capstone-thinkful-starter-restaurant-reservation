@@ -39,10 +39,8 @@ function Dashboard({ date }) {
 
   return (
     <main>
-      <h1>Dashboard</h1>
-      <div className="d-md-flex mb-2">
-        <h4 className="mb-0">Reservations for Date: {reservationsDate}</h4>
-      </div>
+      <h1 class="mt-lg-4 mt-1 mb-3">Dashboard</h1>
+      <h4 class="mb-1">Reservations for Date: {reservationsDate}</h4>
       <DashboardButtons reservationsDate={reservationsDate} />
       <ErrorAlert error={reservationsError} />
       <DashboardReservationsTable

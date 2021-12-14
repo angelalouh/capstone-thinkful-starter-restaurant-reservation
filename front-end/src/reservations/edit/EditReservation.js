@@ -41,7 +41,7 @@ function EditReservation() {
 
   return (
     <main>
-      <h1>Edit Reservation {reservation_id}</h1>
+      <h1 class="mt-lg-4 mt-1 mb-3">Edit Reservation {reservation_id}</h1>
       <ErrorAlert error={error} />
       <form onSubmit={submitHandler} class="row g-3">
         <ReservationForm
