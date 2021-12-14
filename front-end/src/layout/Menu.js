@@ -10,20 +10,23 @@ import { today } from "../utils/date-time";
 
 function Menu() {
   return (
-    <nav className="navbar navbar-dark align-items-start p-0">
+    <nav className="navbar navbar-dark align-items-start p-0 pb-2 pb-sm-0">
       <div className="container-fluid d-flex flex-column p-0">
         <Link
           className="navbar-brand d-flex justify-content-center align-items-center sidebar-brand m-0"
-          to={{pathname: "/dashboard", search: `?date=${today()}`}}
+          to={{ pathname: "/dashboard", search: `?date=${today()}` }}
         >
-          <div className="sidebar-brand-text mx-3">
-            <span>Periodic Tables</span>
+          <div className="sidebar-brand-text mx-3 mt-2 text-wrap">
+            <span class="fs-3">Periodic Tables</span>
           </div>
         </Link>
         <hr className="sidebar-divider my-0" />
         <ul className="nav navbar-nav text-light" id="accordionSidebar">
           <li className="nav-item">
-            <Link className="nav-link" to={{pathname: "/dashboard", search: `?date=${today()}`}}>
+            <Link
+              className="nav-link"
+              to={{ pathname: "/dashboard", search: `?date=${today()}` }}
+            >
               <span className="oi oi-dashboard" />
               &nbsp;Dashboard
             </Link>
