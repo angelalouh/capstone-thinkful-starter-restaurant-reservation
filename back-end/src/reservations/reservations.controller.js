@@ -213,7 +213,7 @@ function statusIsNotFinished(req, res, next) {
   if (reservation && reservation.status !== "booked") {
     next({
       status: 400,
-      message: `A ${reservation.status} reservation cannot be updated.`,
+      message: `A ${reservation.status} reservation cannot be updated or cancelled.`,
     });
   }
 
